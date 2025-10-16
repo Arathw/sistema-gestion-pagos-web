@@ -13,6 +13,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+// Middleware para manejar errores y devolver JSON
+app.use((error, req, res, next) => {
+  console.error('Error middleware:', error);
+  res.status(500).json({
+    success: false,
+    error: error.message || 'Error interno del servidor',
+    details: error.stack
+  });
+});
+
 // Rutas específicas para archivos estáticos
 app.get('/style.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'style.css'));
@@ -156,6 +166,27 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Ruta de prueba para verificar el procesamiento
+app.get('/api/test-excel', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Endpoint de prueba funcionando',
+    datos: {
+      totalFacturas: 0,
+      ejemplo: {
+        UUID: 'TEST-123',
+        Proveedor: 'Proveedor de Prueba',
+        Folio: 'FOL-001',
+        Monto: 1000,
+        Concepto: 'Concepto de prueba',
+        Fecha: '2025-01-01',
+        'Método de Pago': 'PUE',
+        ESTATUS_PAGO: 'Pendiente'
+      }
+    }
+  });
+});
+
 // Ruta principal
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -184,7 +215,11 @@ app.post('/api/upload', upload.single('excel'), (req, res) => {
     
     if (facturas.length === 0) {
       console.log('Error: No se pudieron leer datos del archivo Excel');
-      return res.status(400).json({ error: 'No se pudieron leer datos del archivo Excel' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'No se pudieron leer datos del archivo Excel',
+        details: 'El archivo puede estar vacío o tener un formato no compatible'
+      });
     }
 
     console.log('Procesando facturas...');
