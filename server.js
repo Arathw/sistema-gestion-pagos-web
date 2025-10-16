@@ -45,13 +45,32 @@ let statusPagos = {};
 // Función para leer archivo Excel
 function leerExcel(archivo) {
   try {
+    console.log('Leyendo archivo Excel:', archivo);
+    
+    // Verificar que el archivo existe
+    if (!fs.existsSync(archivo)) {
+      console.error('Archivo no encontrado:', archivo);
+      return [];
+    }
+    
     const workbook = XLSX.readFile(archivo);
+    console.log('Workbook leído, hojas disponibles:', workbook.SheetNames);
+    
     const sheetName = workbook.SheetNames[0];
+    console.log('Usando hoja:', sheetName);
+    
     const worksheet = workbook.Sheets[sheetName];
     const data = XLSX.utils.sheet_to_json(worksheet);
+    
+    console.log('Datos extraídos:', data.length, 'filas');
+    if (data.length > 0) {
+      console.log('Primera fila:', Object.keys(data[0]));
+    }
+    
     return data;
   } catch (error) {
     console.error("Error leyendo Excel:", error);
+    console.error("Stack trace:", error.stack);
     return [];
   }
 }
@@ -96,34 +115,69 @@ app.get('/', (req, res) => {
 
 // Subir archivo Excel
 app.post('/api/upload', upload.single('excel'), (req, res) => {
+  let filePath = null;
+  
   try {
+    console.log('=== INICIANDO PROCESAMIENTO DE ARCHIVO ===');
+    console.log('Archivo recibido:', req.file);
+    
     if (!req.file) {
+      console.log('Error: No se subió ningún archivo');
       return res.status(400).json({ error: 'No se subió ningún archivo' });
     }
 
-    const filePath = req.file.path;
+    filePath = req.file.path;
+    console.log('Ruta del archivo:', filePath);
+    console.log('Tamaño del archivo:', req.file.size);
+    console.log('Tipo del archivo:', req.file.mimetype);
+
     const facturas = leerExcel(filePath);
+    console.log('Facturas leídas:', facturas.length);
     
     if (facturas.length === 0) {
+      console.log('Error: No se pudieron leer datos del archivo Excel');
       return res.status(400).json({ error: 'No se pudieron leer datos del archivo Excel' });
     }
 
+    console.log('Procesando facturas...');
     const facturasProcesadas = procesarFacturas(facturas);
+    console.log('Facturas procesadas:', facturasProcesadas.length);
+    
     datosFacturas = facturasProcesadas;
 
     // Limpiar archivo temporal
-    fs.unlinkSync(filePath);
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      console.log('Archivo temporal eliminado');
+    }
 
-    res.json({
+    const response = {
       success: true,
       message: 'Archivo procesado correctamente',
       totalFacturas: facturasProcesadas.length,
       facturas: facturasProcesadas.slice(0, 10) // Primeras 10 para preview
-    });
+    };
+    
+    console.log('Respuesta preparada:', response);
+    res.json(response);
 
   } catch (error) {
     console.error('Error procesando archivo:', error);
-    res.status(500).json({ error: error.message });
+    
+    // Limpiar archivo temporal en caso de error
+    if (filePath && fs.existsSync(filePath)) {
+      try {
+        fs.unlinkSync(filePath);
+        console.log('Archivo temporal eliminado después del error');
+      } catch (cleanupError) {
+        console.error('Error limpiando archivo temporal:', cleanupError);
+      }
+    }
+    
+    res.status(500).json({ 
+      error: error.message,
+      details: error.stack 
+    });
   }
 });
 
