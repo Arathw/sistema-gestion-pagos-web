@@ -13,6 +13,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+// Rutas específicas para archivos estáticos
+app.get('/style.css', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'style.css'));
+});
+
+app.get('/script.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'script.js'));
+});
+
 // Configurar multer para subir archivos
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
