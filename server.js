@@ -71,6 +71,15 @@ function procesarFacturas(facturas) {
   });
 }
 
+// Ruta de salud para Vercel
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Servidor funcionando correctamente',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Ruta principal
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -257,10 +266,13 @@ app.get('/api/export', (req, res) => {
   }
 });
 
-// Iniciar servidor
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-  console.log(`📱 Aplicación disponible en: http://localhost:${PORT}`);
-});
+// Iniciar servidor solo si no estamos en Vercel
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+    console.log(`📱 Aplicación disponible en: http://localhost:${PORT}`);
+  });
+}
 
+// Exportar la app para Vercel
 module.exports = app;
