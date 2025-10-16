@@ -102,12 +102,25 @@ async function subirArchivo(file) {
         const formData = new FormData();
         formData.append('excel', file);
         
+        console.log('Enviando archivo:', file.name, 'Tamaño:', file.size);
+        
         const response = await fetch('/api/upload', {
             method: 'POST',
             body: formData
         });
         
+        console.log('Respuesta del servidor:', response.status, response.statusText);
+        
+        // Verificar si la respuesta es JSON válido
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const textResponse = await response.text();
+            console.error('Respuesta no es JSON:', textResponse);
+            throw new Error(`El servidor respondió con formato incorrecto: ${response.status} ${response.statusText}`);
+        }
+        
         const result = await response.json();
+        console.log('Resultado del servidor:', result);
         
         if (result.success) {
             mostrarUploadStatus(`✅ Archivo procesado: ${result.totalFacturas} facturas encontradas`, 'success');
@@ -124,7 +137,16 @@ async function subirArchivo(file) {
         
     } catch (error) {
         console.error('Error subiendo archivo:', error);
-        mostrarError(`Error procesando archivo: ${error.message}`);
+        
+        // Mostrar error más detallado
+        let errorMessage = error.message;
+        if (error.message.includes('Unexpected end of JSON input')) {
+            errorMessage = 'Error del servidor: Respuesta incompleta. Verifica que el archivo Excel sea válido.';
+        } else if (error.message.includes('Failed to execute')) {
+            errorMessage = 'Error de conexión con el servidor. Intenta nuevamente.';
+        }
+        
+        mostrarError(`Error procesando archivo: ${errorMessage}`);
         mostrarUploadStatus('❌ Error procesando archivo', 'error');
     } finally {
         ocultarLoading();

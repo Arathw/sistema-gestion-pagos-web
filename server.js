@@ -77,25 +77,73 @@ function leerExcel(archivo) {
 
 // Función para procesar facturas
 function procesarFacturas(facturas) {
-  return facturas.map(factura => {
-    const metodoPago = factura['Método de Pago'] || '';
-    const esPUE = metodoPago.includes('PUE');
-    const esPPD = metodoPago.includes('PPD');
-    
-    // Determinar estatus inicial
-    let estatusPago = 'Pendiente';
-    if (factura.ESTATUS_PAGO) {
-      estatusPago = factura.ESTATUS_PAGO;
+  console.log('Procesando facturas, total:', facturas.length);
+  
+  if (!facturas || facturas.length === 0) {
+    console.log('No hay facturas para procesar');
+    return [];
+  }
+  
+  // Mostrar la estructura de la primera factura para debugging
+  if (facturas.length > 0) {
+    console.log('Estructura de la primera factura:', Object.keys(facturas[0]));
+    console.log('Primera factura completa:', facturas[0]);
+  }
+  
+  return facturas.map((factura, index) => {
+    try {
+      // Mapear campos según la estructura real del archivo
+      const uuid = factura.UUID || factura.uuid || `UUID-${index}`;
+      const proveedor = factura.Proveedor || factura.proveedor || factura.PROVEEDOR || 'Sin Proveedor';
+      const folio = factura.Folio || factura.folio || factura.FOLIO || `FOL-${index}`;
+      const monto = parseFloat(factura.Monto || factura.monto || factura.MONTO || factura.Total || 0);
+      const concepto = factura.Concepto || factura.concepto || factura.CONCEPTO || 'Sin concepto';
+      const fecha = factura.Fecha || factura.fecha || factura.FECHA || new Date().toISOString().split('T')[0];
+      
+      const metodoPago = factura['Método de Pago'] || factura.metodoPago || factura.METODO_PAGO || '';
+      const esPUE = metodoPago.toString().toUpperCase().includes('PUE');
+      const esPPD = metodoPago.toString().toUpperCase().includes('PPD');
+      
+      // Determinar estatus inicial
+      let estatusPago = 'Pendiente';
+      if (factura.ESTATUS_PAGO || factura.estatusPago) {
+        estatusPago = factura.ESTATUS_PAGO || factura.estatusPago;
+      }
+      
+      const facturaProcesada = {
+        UUID: uuid,
+        Proveedor: proveedor,
+        Folio: folio,
+        Monto: monto,
+        Concepto: concepto,
+        Fecha: fecha,
+        'Método de Pago': metodoPago,
+        METODO_PAGO: esPUE ? 'PUE' : esPPD ? 'PPD' : 'PAGO',
+        ES_PUE: esPUE,
+        ES_PPD: esPPD,
+        ESTATUS_PAGO: estatusPago,
+        TIENE_COMPLEMENTO: !!factura.COMPLEMENTO_PAGO
+      };
+      
+      return facturaProcesada;
+    } catch (error) {
+      console.error(`Error procesando factura ${index}:`, error);
+      // Retornar una factura básica en caso de error
+      return {
+        UUID: `ERROR-${index}`,
+        Proveedor: 'Error en procesamiento',
+        Folio: `ERR-${index}`,
+        Monto: 0,
+        Concepto: 'Error',
+        Fecha: new Date().toISOString().split('T')[0],
+        'Método de Pago': 'PAGO',
+        METODO_PAGO: 'PAGO',
+        ES_PUE: false,
+        ES_PPD: false,
+        ESTATUS_PAGO: 'Pendiente',
+        TIENE_COMPLEMENTO: false
+      };
     }
-    
-    return {
-      ...factura,
-      METODO_PAGO: esPUE ? 'PUE' : esPPD ? 'PPD' : 'PAGO',
-      ES_PUE: esPUE,
-      ES_PPD: esPPD,
-      ESTATUS_PAGO: estatusPago,
-      TIENE_COMPLEMENTO: !!factura.COMPLEMENTO_PAGO
-    };
   });
 }
 
