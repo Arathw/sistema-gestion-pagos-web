@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Pagos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>💰 Sistema de Gestión de Pagos</h1>
+            <p>Sube tu archivo Excel y gestiona los pagos de facturas</p>
+        </header>
+
+        <!-- Sección de carga de archivos -->
+        <div class="upload-section">
+            <h2>📁 Subir Archivo Excel</h2>
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-content">
+                    <div class="upload-icon">📄</div>
+                    <p>Arrastra tu archivo Excel aquí o haz clic para seleccionar</p>
+                    <input type="file" id="fileInput" accept=".xls,.xlsx" style="display: none;">
+                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                        Seleccionar Archivo
+                    </button>
+                </div>
+            </div>
+            <div id="uploadStatus" class="upload-status"></div>
+        </div>
+
+        <!-- Sección de resultados -->
+        <div id="resultsSection" class="results-section" style="display: none;">
+            <!-- Estadísticas -->
+            <div class="stats-section">
+                <h2>📊 Estadísticas</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Facturas</h3>
+                        <p id="totalFacturas">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Monto</h3>
+                        <p id="totalMonto">$0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Pendientes</h3>
+                        <p id="pendientes">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Pagados</h3>
+                        <p id="pagados">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>PUE</h3>
+                        <p id="pue">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>PPD</h3>
+                        <p id="ppd">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de facturas -->
+            <div class="table-section">
+                <h2>📋 Facturas</h2>
+                <div class="table-container">
+                    <table class="facturas-table">
+                        <thead>
+                            <tr>
+                                <th>UUID</th>
+                                <th>Proveedor</th>
+                                <th>Folio</th>
+                                <th>Monto</th>
+                                <th>Fecha</th>
+                                <th>Concepto</th>
+                                <th>Método Pago</th>
+                                <th>Estatus</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="facturasTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Resumen por proveedor -->
+            <div class="proveedores-section">
+                <h2>📊 Resumen por Proveedor</h2>
+                <div class="table-container">
+                    <table class="proveedores-table">
+                        <thead>
+                            <tr>
+                                <th>Proveedor</th>
+                                <th>Total Facturas</th>
+                                <th>Monto Total</th>
+                                <th>Pendientes</th>
+                                <th>Pagados</th>
+                                <th>PUE</th>
+                                <th>PPD</th>
+                            </tr>
+                        </thead>
+                        <tbody id="proveedoresTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="actions-section">
+                <button class="btn btn-success" onclick="exportarDatos()">📤 Exportar Datos</button>
+                <button class="btn btn-info" onclick="actualizarResumen()">🔄 Actualizar Resumen</button>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Procesando...</p>
+        </div>
+
+        <!-- Error -->
+        <div id="error" class="error" style="display: none;">
+            <p id="errorMessage"></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

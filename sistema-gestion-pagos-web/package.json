@@ -1,0 +1,26 @@
+{
+  "name": "sistema-gestion-pagos-web",
+  "version": "1.0.0",
+  "description": "Sistema de Gestión de Pagos - Aplicación Web",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "echo 'Build completed'",
+    "vercel-build": "echo 'Vercel build completed'"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "multer": "^2.0.0",
+    "xlsx": "^0.18.5",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
